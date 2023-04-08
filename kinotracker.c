@@ -9,14 +9,8 @@
 #define SPACE_LEN 40
 
 /* TODO:
- *  -   FIX ADDING ITEMS TO THE START OF THE ITEM LIST
- * 
- * 
- * 
+ * - 
 */
-
-
-
 
 
 // Debug
@@ -40,6 +34,10 @@ Genre get_genre(char* text) {
         return G_ACTION;
     } else if (!strcmp("comedy", text)) {
         return G_COMEDY;
+    } else if (!strcmp("anime", text)) {
+        return G_ANIME;
+    } else if (!strcmp("war", text)) {
+        return G_WAR;
 
     } else {
         return G_UNDEF;
@@ -48,14 +46,16 @@ Genre get_genre(char* text) {
 
 // Gets the string form of a given genre enum 
 char* get_genre_str(Genre genre) {
-    char* NAMES[7] = {
+    char* NAMES[9] = {
         "undefined",
         "scifi",
         "drama",
         "mystery",
         "horror",
         "action",
-        "comedy"
+        "comedy",
+        "anime",
+        "war"
     };
 
     return NAMES[genre];
@@ -262,7 +262,6 @@ void itemlist_add_start(ItemList* list, Item* item) {
     
 }
 
-
 // Removes an item from a given itemlist
 void itemlist_remove(ItemList* list, int index) {
 
@@ -333,7 +332,6 @@ ItemList* load_items(char* path) {
 
     return items;
 }
-
 
 // Prompts a user with a message and records their input as a string
 String* prompt(char* msg) {
@@ -451,14 +449,7 @@ void menu_add(ItemList* items, char* path) {
 
 // Menu print path
 void menu_print(ItemList* list) {
-    // Print list
-    // if (accept_prompt("Print raw? (y/n)", "y")) {
-    //     printf("\n");
-    //     itemlist_print_raw(list);
-    // } else {
-    //     printf("\n");
-        itemlist_print(list);
-    // }
+    itemlist_print(list);
 }
 
 // Filters list by genre
@@ -468,7 +459,8 @@ void filter_genre(ItemList* list) {
     for (int i = 0; i < GENRE_MAX; i++) {
         printf("[%d]\t%s\n", i, get_genre_str(i));
     }
-    String* temp = prompt("\nSelect genre (0-5)\n");
+
+    String* temp = prompt("\nSelect genre (0-8)\n");
     
     Genre genre = G_UNDEF;
     if (is_number(temp)) {
@@ -707,38 +699,6 @@ int main(int argc, char** argv) {
     menu(items, path);
 
     itemlist_free(items);
-
-
-
-    // ItemList* test = itemlist_init();
-
-    // String* st1 = str_init("a,123,horror,n,n");
-    // StringList* slist1 = str_split(st1, ",");
-
-    // String* st2 = str_init("b,123,comedy,n,n");
-    // StringList* slist2 = str_split(st2, ",");
-
-    // String* st3 = str_init("c,123,scifi,n,n");
-    // StringList* slist3 = str_split(st3, ",");
-
-    // itemlist_add(test, item_init(slist1, st1, 0));
-    // itemlist_add(test, item_init(slist3, st3, 2));
-
-    // itemlist_add_start(test, item_init(slist2, st2, 1));
-
-    // itemlist_print(test);
-
-    // str_free(st1);
-    // str_free(st2);
-    // str_free(st3);
-
-    // itemlist_free(test);
-
-    // strlist_free(slist1);
-    // strlist_free(slist2);
-    // strlist_free(slist3);
-
-
 
 
     return 0;

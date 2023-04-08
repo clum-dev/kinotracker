@@ -3,7 +3,7 @@
 
 #include "strings.h"
 
-#define GENRE_MAX 6
+#define GENRE_MAX 9
 
 //
 typedef enum Genre {
@@ -15,6 +15,8 @@ typedef enum Genre {
     G_HORROR,
     G_ACTION,
     G_COMEDY,
+    G_ANIME,
+    G_WAR,
     
 } Genre;
 

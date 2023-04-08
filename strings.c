@@ -243,7 +243,7 @@ String* strlist_join(StringList* list, char separator) {
     return out;
 }
 
-//
+// Clones a stringlist
 StringList* strlist_clone(StringList* src) {
 
     StringList* out = strlist_init();
