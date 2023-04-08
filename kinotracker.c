@@ -535,11 +535,26 @@ void filter_favourites(ItemList* list) {
 
 }
 
+//
+void filter_name(ItemList* list) {
+    
+    String* name = prompt("Enter name to find:");
+    int index = itemlist_find(list, name);
+
+    if (index != -1) {
+        item_print(list->items[index]);
+    } else {
+        printf("Item '%s' could not be found\n", name->text);
+    }
+
+    str_free(name);
+}
+
 // Menu filter path
 void menu_filter(ItemList* list) {
     
     printf("\nFilter by:\n");
-    String* response = prompt("(G)enre\n(Y)ear\n(W)atched\n(F)avourites\n");
+    String* response = prompt("(G)enre\n(Y)ear\n(W)atched\n(F)avourites\n(N)ame");
 
     if (!strcmp(response->text, "G") || !strcmp(response->text, "g")) {
         filter_genre(list);
@@ -549,6 +564,8 @@ void menu_filter(ItemList* list) {
         filter_watched(list);
     } else if (!strcmp(response->text, "F") || !strcmp(response->text, "f")) {
         filter_favourites(list);
+    } else if (!strcmp(response->text, "N") || !strcmp(response->text, "n")) {
+        filter_name(list);
     } else {
         printf("Unhandled option: '%s'\n", response->text);
     }
