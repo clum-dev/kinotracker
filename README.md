@@ -5,4 +5,4 @@ Build executable (gcc): `make kinotracker`
 
 Build and run with `./run.sh`
 
-List of items stored in `/txt/`
+See `example.txt` for file format.
