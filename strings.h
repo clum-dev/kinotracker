@@ -39,5 +39,7 @@ void strlist_print(StringList* list);
 void strlist_add(StringList* list, String* text);
 StringList* str_split(String* src, char* delims);
 String* strlist_join(StringList* list, char separator);
+StringList* strlist_clone(StringList* src);
+
 
 #endif

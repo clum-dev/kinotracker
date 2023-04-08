@@ -242,3 +242,15 @@ String* strlist_join(StringList* list, char separator) {
 
     return out;
 }
+
+//
+StringList* strlist_clone(StringList* src) {
+
+    StringList* out = strlist_init();
+
+    for (size_t i = 0; i < src->len; i++) {
+        strlist_add(out, str_init(src->strings[i]->text));
+    }
+
+    return out;
+}

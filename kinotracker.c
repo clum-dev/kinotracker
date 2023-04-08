@@ -8,6 +8,17 @@
 
 #define SPACE_LEN 40
 
+/* TODO:
+ *  -   FIX ADDING ITEMS TO THE START OF THE ITEM LIST
+ * 
+ * 
+ * 
+*/
+
+
+
+
+
 // Debug
 void unimp(char* msg) {
     fprintf(stderr, "[UNIMP]\t%s\n", msg);
@@ -106,7 +117,7 @@ Item* item_init(StringList* entry, String* raw, int index) {
     item->watched = str_to_bool(entry->strings[I_WATCHED]->text);
     item->favourite = str_to_bool(entry->strings[I_FAV]->text);
 
-    item->vals = entry;
+    item->vals = strlist_clone(entry);
     item->raw = str_init(raw->text);
 
     return item;
@@ -186,6 +197,9 @@ void itemlist_free(ItemList* list) {
 // Rebuilds the indexing of items in an itemlist
 // Useful when indexing is interrupted by removes
 void itemlist_re_index(ItemList* list) {
+    
+    printf("list size: %d\n", (int)list->size);
+    
     // Re-index items
     for (size_t i = 0; i < list->size; i++) {
         list->items[i]->index = i;
@@ -199,7 +213,9 @@ void itemlist_print(ItemList* list) {
 
     printf("ItemList: (len = %d)\n", (int)list->size);
     for (size_t i = 0; i < list->size; i++) {
-        item_print(list->items[i]);
+        if (list->items[i] != NULL) {
+            item_print(list->items[i]);
+        }
     }
 
 }
@@ -215,14 +231,37 @@ void itemlist_print_raw(ItemList* list) {
 // Adds an item to a given itemlist
 void itemlist_add(ItemList* list, Item* item) {
     
+    // printf("TESTING\tADDING:\n");
+    // item_print(item);
+
+    if (list->size == 0) {
+        list->items = (Item**)malloc(sizeof(Item*) * ++list->size);
+    } else {
+        list->items = (Item**)realloc(list->items, sizeof(Item*) * ++list->size);
+    }
+    
+    list->items[list->size - 1] = item;
+}
+
+// Adds item to the start of a given itemlist
+void itemlist_add_start(ItemList* list, Item* item) {
+    
     if (list->size == 0) {
         list->items = (Item**)malloc(sizeof(Item*) * ++list->size);
     } else {
         list->items = (Item**)realloc(list->items, sizeof(Item*) * ++list->size);
     }
 
-    list->items[list->size - 1] = item;
+    list->items[list->size - 1] = NULL;
+
+    for (size_t i = list->size - 1; i > 0; i--) {
+        list->items[i] = list->items[i - 1];
+    }
+
+    list->items[0] = item;
+    
 }
+
 
 // Removes an item from a given itemlist
 void itemlist_remove(ItemList* list, int index) {
@@ -284,8 +323,10 @@ ItemList* load_items(char* path) {
     ItemList* items = itemlist_init();
     for (size_t i = 0; i < lines->len; i++) {
         String* raw = str_init(lines->strings[i]->text);
-        itemlist_add(items, item_init(str_split(lines->strings[i], ","), raw, (int)i));
+        StringList* temp = str_split(lines->strings[i], ",");
+        itemlist_add(items, item_init(temp, raw, (int)i));
         str_free(raw);
+        strlist_free(temp);
     }
 
     strlist_free(lines);
@@ -368,14 +409,15 @@ void add_item_from_user(ItemList* list) {
         printf("Adding '%s'\n\n", raw->text);    
 
         Item* temp = item_init(vals, raw, list->size - 1);
-        itemlist_add(list, temp);
+        itemlist_add_start(list, temp);
 
         str_free(raw);
 
     } else {
         printf("Error: inputs cannot contain commas - please try again\n\n");
-        strlist_free(vals);
     }
+
+    strlist_free(vals);
 
 }
 
@@ -398,7 +440,7 @@ void menu_add(ItemList* items, char* path) {
     while (true) {
         if (accept_prompt("Add item? (y/n)", "y")) {
             add_item_from_user(items);
-            append_data_to_file(items->items[items->size - 1]->raw, path);
+            // append_data_to_file(items->items[items->size - 1]->raw, path);
         }
 
         if (accept_prompt("Done? (y/n)", "y")) {
@@ -665,6 +707,39 @@ int main(int argc, char** argv) {
     menu(items, path);
 
     itemlist_free(items);
+
+
+
+    // ItemList* test = itemlist_init();
+
+    // String* st1 = str_init("a,123,horror,n,n");
+    // StringList* slist1 = str_split(st1, ",");
+
+    // String* st2 = str_init("b,123,comedy,n,n");
+    // StringList* slist2 = str_split(st2, ",");
+
+    // String* st3 = str_init("c,123,scifi,n,n");
+    // StringList* slist3 = str_split(st3, ",");
+
+    // itemlist_add(test, item_init(slist1, st1, 0));
+    // itemlist_add(test, item_init(slist3, st3, 2));
+
+    // itemlist_add_start(test, item_init(slist2, st2, 1));
+
+    // itemlist_print(test);
+
+    // str_free(st1);
+    // str_free(st2);
+    // str_free(st3);
+
+    // itemlist_free(test);
+
+    // strlist_free(slist1);
+    // strlist_free(slist2);
+    // strlist_free(slist3);
+
+
+
 
     return 0;
 }
