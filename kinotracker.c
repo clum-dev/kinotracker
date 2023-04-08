@@ -8,16 +8,13 @@
 
 #define SPACE_LEN 40
 
-// TODO
-// -    add marking functionality (mark favourite or watched without having to edit the whole entry)
-
-
+// Debug
 void unimp(char* msg) {
     fprintf(stderr, "[UNIMP]\t%s\n", msg);
 }
 
 
-//
+// Gets the enum form from a given genre string (default undefined if no match)
 Genre get_genre(char* text) {
 
     if (!strcmp("scifi", text)) {
@@ -38,7 +35,7 @@ Genre get_genre(char* text) {
     }
 }
 
-//
+// Gets the string form of a given genre enum 
 char* get_genre_str(Genre genre) {
     char* NAMES[7] = {
         "undefined",
@@ -53,7 +50,7 @@ char* get_genre_str(Genre genre) {
     return NAMES[genre];
 }
 
-//
+// Converts y/n prompt to bool
 bool str_to_bool(char* text) {
     if (!strcmp("y", text) || !strcmp("Y", text)) {
         return true;
@@ -64,16 +61,8 @@ bool str_to_bool(char* text) {
     }
 }
 
-//
-char* bool_to_str(bool val) {
-    if (val) {
-        return "true";
-    } else {
-        return "false";
-    }
-}
-
-//
+// Gets the number of spaces needed to fill a given string length
+// (used for good looking tabs)
 String* get_space(String* input, int spaceLen) {
     
     int diff = spaceLen - input->len;
@@ -86,7 +75,7 @@ String* get_space(String* input, int spaceLen) {
     return out;
 }
 
-//
+// Checks if a string is an int
 bool is_number(String* input) {
     
     size_t count = 0;
@@ -101,7 +90,7 @@ bool is_number(String* input) {
 }
 
 
-//
+// Initialises an item struct
 Item* item_init(StringList* entry, String* raw, int index) {
 
     if (entry->len != 5) {
@@ -123,7 +112,7 @@ Item* item_init(StringList* entry, String* raw, int index) {
     return item;
 }
 
-//
+// Frees an item struct
 void item_free(Item* item) {
 
     if (item != NULL) {
@@ -137,7 +126,7 @@ void item_free(Item* item) {
     }
 }
 
-//
+// Prints an item struct
 void item_print(Item* item) {
     
     if (item == NULL) {
@@ -165,8 +154,7 @@ void item_print(Item* item) {
 }
 
 
-
-//
+// Initialises an itemlist struct
 ItemList* itemlist_init() {
 
     ItemList* list = (ItemList*)malloc(sizeof(ItemList));
@@ -176,7 +164,7 @@ ItemList* itemlist_init() {
     return list;
 }
 
-//
+// Frees an itemlist struct
 void itemlist_free(ItemList* list) {
 
     if (list != NULL) {
@@ -195,7 +183,8 @@ void itemlist_free(ItemList* list) {
     }
 }
 
-//
+// Rebuilds the indexing of items in an itemlist
+// Useful when indexing is interrupted by removes
 void itemlist_re_index(ItemList* list) {
     // Re-index items
     for (size_t i = 0; i < list->size; i++) {
@@ -203,7 +192,7 @@ void itemlist_re_index(ItemList* list) {
     }
 }
 
-//
+// Prints an itemlist struct
 void itemlist_print(ItemList* list) {
 
     itemlist_re_index(list);
@@ -215,14 +204,15 @@ void itemlist_print(ItemList* list) {
 
 }
 
-//
+// Prints the raw text for an itemlist
+// (identical to stored text file)
 void itemlist_print_raw(ItemList* list) {    
     for (size_t i = 0; i < list->size; i++) {
         printf("%s\n", list->items[i]->raw->text);
     }
 }
 
-//
+// Adds an item to a given itemlist
 void itemlist_add(ItemList* list, Item* item) {
     
     if (list->size == 0) {
@@ -234,7 +224,7 @@ void itemlist_add(ItemList* list, Item* item) {
     list->items[list->size - 1] = item;
 }
 
-//
+// Removes an item from a given itemlist
 void itemlist_remove(ItemList* list, int index) {
 
     // Bounds check
@@ -257,7 +247,9 @@ void itemlist_remove(ItemList* list, int index) {
 
 }
 
-//
+// Attempts to find an item in an itemlist
+// Can provide either the item name, or its index
+// (Returns -1 if the item cannot be found)
 int itemlist_find(ItemList* list, String* name) {
 
     int index = -1;
@@ -280,7 +272,7 @@ int itemlist_find(ItemList* list, String* name) {
     return index;
 }
 
-//
+// Loads items from a stored file into an itemlist struct
 ItemList* load_items(char* path) {
     
     // Load file
@@ -302,7 +294,7 @@ ItemList* load_items(char* path) {
 }
 
 
-//
+// Prompts a user with a message and records their input as a string
 String* prompt(char* msg) {
     printf("%s\n> ", msg);
 
@@ -312,7 +304,9 @@ String* prompt(char* msg) {
     return temp;
 }
 
-//
+// Prompts a user with a messange, records their input, 
+// and checks against the given accept string
+// Returns true if it matches
 bool accept_prompt(char* msg, char* accept) {
 
     bool out = false;
@@ -326,7 +320,7 @@ bool accept_prompt(char* msg, char* accept) {
     return out;
 }
 
-//
+// Appends a string to the end of a file
 void append_data_to_file(String* str, char* filepath) {
     // Append text to file
     FILE* fp = open_file(filepath, "a");
@@ -334,7 +328,7 @@ void append_data_to_file(String* str, char* filepath) {
     fclose(fp);
 }
 
-//
+// Overwrites a file with the given itemlist
 void overwrite_file_data(ItemList* items, char* filepath) {
     // Overwrite file
     FILE* fp = open_file(filepath, "w");
@@ -344,7 +338,8 @@ void overwrite_file_data(ItemList* items, char* filepath) {
     fclose(fp);
 }
 
-//
+// Checks if a stringlist has no commas
+// Needed to sanitize user input, as items are stored with comma separators
 bool has_no_commas(StringList* vals) {
     for (size_t i = 0; i < vals->len; i++) {
         if (strchr(vals->strings[i]->text, ',') != NULL) {
@@ -354,7 +349,7 @@ bool has_no_commas(StringList* vals) {
     return true;
 }
 
-//
+// Adds an item from a user
 void add_item_from_user(ItemList* list) {
     
     printf("Adding new item:\n");
@@ -384,7 +379,7 @@ void add_item_from_user(ItemList* list) {
 
 }
 
-//
+// Displays the welcome message
 void welcome_msg() {
     
     printf("  _  ___          _______             _             \n\
@@ -397,7 +392,7 @@ void welcome_msg() {
 }
 
 
-//
+// Menu add path
 void menu_add(ItemList* items, char* path) {
     // Check for user prompt
     while (true) {
@@ -412,7 +407,7 @@ void menu_add(ItemList* items, char* path) {
     }
 }
 
-//
+// Menu print path
 void menu_print(ItemList* list) {
     // Print list
     // if (accept_prompt("Print raw? (y/n)", "y")) {
@@ -424,7 +419,7 @@ void menu_print(ItemList* list) {
     // }
 }
 
-//
+// Filters list by genre
 void filter_genre(ItemList* list) {
     
     printf("\nGenres:\n");
@@ -451,7 +446,7 @@ void filter_genre(ItemList* list) {
     str_free(temp);
 }
 
-//
+// Filters list by year
 void filter_year(ItemList* list) {
     String* lower = prompt("Lower year bound?");
     String* upper = prompt("Upper year bound?");
@@ -475,7 +470,7 @@ void filter_year(ItemList* list) {
     str_free(upper);
 }
 
-//
+// Filters list by watched
 void filter_watched(ItemList* list) {
     
     bool showWatched = false;
@@ -490,7 +485,7 @@ void filter_watched(ItemList* list) {
     }
 }
 
-//
+// Filters list by favourites
 void filter_favourites(ItemList* list) {
 
     bool showFavs = false;
@@ -506,7 +501,7 @@ void filter_favourites(ItemList* list) {
 
 }
 
-//
+// Menu filter path
 void menu_filter(ItemList* list) {
     
     printf("\nFilter by:\n");
@@ -528,7 +523,7 @@ void menu_filter(ItemList* list) {
     
 }
 
-//
+// Menu edit path
 void menu_edit(ItemList* list) {
     String* temp = prompt("Enter name or index to edit:");
     int index = itemlist_find(list, temp);
@@ -560,7 +555,7 @@ void menu_edit(ItemList* list) {
 
 }
 
-//
+// Menu mark path
 void menu_mark(ItemList* list) {
     String* temp = prompt("Enter name or index to mark:");
     int index = itemlist_find(list, temp);
@@ -583,7 +578,7 @@ void menu_mark(ItemList* list) {
 
 }
 
-//
+// Menu remove path
 void menu_remove(ItemList* list, char* filename) {
 
     String* temp = prompt("Enter name or index to remove:");
@@ -601,7 +596,7 @@ void menu_remove(ItemList* list, char* filename) {
     str_free(temp);
 }
 
-//
+// Menu quit path
 void menu_quit(ItemList* list, char* path) {
     if (accept_prompt("Write item changes to file? (y/n)", "y")) {
         printf("Updating file '%s' with changes\n", path);
@@ -614,7 +609,7 @@ void menu_quit(ItemList* list, char* path) {
 }
 
 
-//
+// Main interaction menu
 void menu(ItemList* list, char* path) {
     
     welcome_msg();
@@ -656,7 +651,7 @@ void menu(ItemList* list, char* path) {
 }
 
 
-//
+// Main entrypoint
 int main(int argc, char** argv) {
 
     if (argc != 2) {

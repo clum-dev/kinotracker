@@ -152,7 +152,7 @@ bool str_equals(String* str1, String* str2, bool caseSensitive) {
 
 /* LIST STUFF */
 
-//
+// Initialises a stringlist struct
 StringList* strlist_init() {
 
     StringList* list = (StringList*)malloc(sizeof(StringList));
@@ -163,7 +163,7 @@ StringList* strlist_init() {
     return list;
 }
 
-//
+// Frees a stringlist struct
 void strlist_free(StringList* list) {
 
     if (list != NULL) {
@@ -183,7 +183,7 @@ void strlist_free(StringList* list) {
     }
 }
 
-//
+// Prints a stringlist struct
 void strlist_print(StringList* list) {
 
     printf("StrList: (len = %d)\n", (int)list->len);
@@ -193,7 +193,7 @@ void strlist_print(StringList* list) {
 
 }
 
-//
+// Adds a string to a given stringlist
 void strlist_add(StringList* list, String* text) {
 
     if (list->strings == NULL) {
@@ -205,7 +205,7 @@ void strlist_add(StringList* list, String* text) {
     list->strings[list->len - 1] = text;
 }
 
-//
+// Splits a string (by given delimiters) into a stringlist
 StringList* str_split(String* src, char* delims) {
 
     StringList* list = strlist_init();
@@ -224,7 +224,7 @@ StringList* str_split(String* src, char* delims) {
     return list;
 }
 
-//
+// Joins a stringlist (by given separators) into a single string
 String* strlist_join(StringList* list, char separator) {
 
     String* out;

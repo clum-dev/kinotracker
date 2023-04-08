@@ -127,7 +127,8 @@ void store_line(Lines* lines, char* line, int lineNum) {
 	lines->lines[lines->size - 1].lineNum = lineNum;
 }
 
-//
+
+// Gets a stringlist representation of the lines of a file
 StringList* get_file_lines(FILE* file) {
 
 	String* raw = dynamic_read(file, false);
@@ -145,8 +146,8 @@ StringList* get_file_lines(FILE* file) {
 }
 
 
-
-//
+// Dynamically reads a given file pointer
+// If singleLine is true, then only one line is read
 String* dynamic_read(FILE* file, bool singleLine) {
     
 	String* str = str_init(NULL);
