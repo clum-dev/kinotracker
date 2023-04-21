@@ -8,8 +8,12 @@
 
 #define SPACE_LEN 40
 
-/* TODO:
- * - 
+/**
+ *  TODO:
+ *      -   add 'less' prompt for printing, which prints like 10 at a time
+ *      -   add index swapping capability
+ *          -   e.g. move watched stuff to the end
+ *      -   add windows make functionality
 */
 
 
@@ -198,7 +202,7 @@ void itemlist_free(ItemList* list) {
 // Useful when indexing is interrupted by removes
 void itemlist_re_index(ItemList* list) {
     
-    printf("list size: %d\n", (int)list->size);
+    // printf("list size: %d\n", (int)list->size);
     
     // Re-index items
     for (size_t i = 0; i < list->size; i++) {
@@ -207,12 +211,16 @@ void itemlist_re_index(ItemList* list) {
 }
 
 // Prints an itemlist struct
-void itemlist_print(ItemList* list) {
+void itemlist_print(ItemList* list, size_t numItems) {
 
     itemlist_re_index(list);
 
-    printf("ItemList: (len = %d)\n", (int)list->size);
-    for (size_t i = 0; i < list->size; i++) {
+    if (numItems > list->size) {
+        numItems = list->size;
+    }
+
+    printf("ItemList: (len = %d)\nPrinting first %d items:\n\n", (int)list->size, (int)numItems);
+    for (size_t i = 0; i < numItems; i++) {
         if (list->items[i] != NULL) {
             item_print(list->items[i]);
         }
@@ -449,7 +457,31 @@ void menu_add(ItemList* items, char* path) {
 
 // Menu print path
 void menu_print(ItemList* list) {
-    itemlist_print(list);
+    
+    size_t numItems = 5;
+    bool done = false;
+    itemlist_print(list, numItems);
+    
+    while (!done) {
+
+        String* response = prompt("\nPrint options:\n(M)ore\n(A)ll\n(C)lear\n(D)one\n");
+
+        if (str_equals_text(response, "M", false)) {
+            numItems += 5;
+            itemlist_print(list, numItems);
+        } else if (str_equals_text(response, "A", false)) {
+            itemlist_print(list, list->size);
+        } else if (str_equals_text(response, "C", false)) {
+            system("clear");
+        } else if (str_equals_text(response, "D", false)) {
+            done = true;
+        } else {
+            printf("Unhandled option: '%s'\n", response->text);
+            done = true;
+        }
+
+        str_free(response);
+    }
 }
 
 // Filters list by genre

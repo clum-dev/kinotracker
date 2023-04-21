@@ -5,6 +5,16 @@
 
 #include "strings.h"
 
+
+#define STR_LIB_VERSION 0.1
+
+// Debug for tracking changes made to this library
+void str_lib_version() {
+    float version = STR_LIB_VERSION;
+    printf("StrLib by clum:\tVersion %f\n", version);
+}
+
+
 // Initialises a string struct (sets to given text val if given)
 String* str_init(char* text) {
 
@@ -136,7 +146,7 @@ bool str_equals(String* str1, String* str2, bool caseSensitive) {
         String* temp1 = str_to_lower(str1);
         String* temp2 = str_to_lower(str2);
 
-        equals = !strcmp(str_to_lower(temp1)->text, str_to_lower(temp2)->text);
+        equals = !strcmp(temp1->text, temp2->text);
 
         str_free(temp1); 
         str_free(temp2);
@@ -148,6 +158,18 @@ bool str_equals(String* str1, String* str2, bool caseSensitive) {
     return equals;
 }
 
+// Checks if two strings are equal
+bool str_equals_text(String* str1, char* str2, bool caseSensitive) {
+
+    if (str1 == NULL) printf("str1 is null\n");
+    if (str2 == NULL) printf("str2 is null\n");
+
+    String* temp = str_init(str2);
+    bool out = str_equals(str1, temp, caseSensitive);
+    str_free(temp);
+
+    return out;
+}
 
 
 /* LIST STUFF */
@@ -172,11 +194,14 @@ void strlist_free(StringList* list) {
 
             for (int i = 0; i < list->len; i++) {
                 str_free(list->strings[i]);
+                list->strings[i] = NULL;
             }
 
             free(list->strings);
             list->strings = NULL;
         }
+
+        list->len = 0;
 
         free(list);
         list = NULL;
@@ -246,6 +271,10 @@ String* strlist_join(StringList* list, char separator) {
 // Clones a stringlist
 StringList* strlist_clone(StringList* src) {
 
+    if (src == NULL) {
+        return NULL;
+    }
+
     StringList* out = strlist_init();
 
     for (size_t i = 0; i < src->len; i++) {
@@ -253,4 +282,13 @@ StringList* strlist_clone(StringList* src) {
     }
 
     return out;
+}
+
+bool strlist_contains(StringList* list, String* str, bool caseSensitive) {
+    for (size_t i = 0; i < list->len; i++) {
+        if (str_equals(list->strings[i], str, caseSensitive)) {
+            return true;
+        }
+    }
+    return false;
 }
