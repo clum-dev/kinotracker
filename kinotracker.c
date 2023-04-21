@@ -3,7 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "file.h"
+#include "clum-lib/strings.h"
+#include "clum-lib/file.h"
 #include "kinotracker.h"
 
 #define SPACE_LEN 40
@@ -108,7 +109,7 @@ bool is_number(String* input) {
 // Initialises an item struct
 Item* item_init(StringList* entry, String* raw, int index) {
 
-    if (entry->len != 5) {
+    if (entry->size != 5) {
         return NULL;
     }
 
@@ -328,7 +329,7 @@ ItemList* load_items(char* path) {
 
     // Add stored items from text file
     ItemList* items = itemlist_init();
-    for (size_t i = 0; i < lines->len; i++) {
+    for (size_t i = 0; i < lines->size; i++) {
         String* raw = str_init(lines->strings[i]->text);
         StringList* temp = str_split(lines->strings[i], ",");
         itemlist_add(items, item_init(temp, raw, (int)i));
@@ -388,7 +389,7 @@ void overwrite_file_data(ItemList* items, char* filepath) {
 // Checks if a stringlist has no commas
 // Needed to sanitize user input, as items are stored with comma separators
 bool has_no_commas(StringList* vals) {
-    for (size_t i = 0; i < vals->len; i++) {
+    for (size_t i = 0; i < vals->size; i++) {
         if (strchr(vals->strings[i]->text, ',') != NULL) {
             return false;
         }
