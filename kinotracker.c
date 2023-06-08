@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "clum-lib/strings.h"
 #include "clum-lib/file.h"
@@ -11,10 +12,8 @@
 
 /**
  *  TODO:
- *      -   add 'less' prompt for printing, which prints like 10 at a time
  *      -   add index swapping capability
  *          -   e.g. move watched stuff to the end
- *      -   add windows make functionality
 */
 
 
@@ -49,6 +48,13 @@ Genre get_genre(char* text) {
     }
 }
 
+// Gets string representation for a given year
+String* get_year_str(int year) {
+    char temp[12];
+    sprintf(temp, "%d", year);
+    return str_init(temp);
+}
+
 // Gets the string form of a given genre enum 
 char* get_genre_str(Genre genre) {
     char* NAMES[9] = {
@@ -76,6 +82,15 @@ bool str_to_bool(char* text) {
         return false;
     }
 }
+
+// Converts a bool to y/n
+String* bool_to_str(bool b) {
+    if (b) {
+        return str_init("y");    
+    }
+    return str_init("n");
+}
+
 
 // Gets the number of spaces needed to fill a given string length
 // (used for good looking tabs)
@@ -169,6 +184,22 @@ void item_print(Item* item) {
 
 }
 
+// Sets the raw text for an item (from what is currently stored)
+void item_set_raw(Item* item) {
+    StringList* temp = strlist_init();
+    strlist_add(temp, str_init(item->name->text));
+    strlist_add(temp, get_year_str(item->releaseYear));
+    strlist_add(temp, str_init(get_genre_str(item->genre)));
+    strlist_add(temp, bool_to_str(item->watched));
+    strlist_add(temp, bool_to_str(item->favourite));
+    String* joined = strlist_join(temp, ',');
+    
+    str_free(item->raw);
+    item->raw = str_init(joined->text);
+
+    str_free(joined);
+    strlist_free(temp);
+}
 
 // Initialises an itemlist struct
 ItemList* itemlist_init() {
@@ -309,7 +340,7 @@ int itemlist_find(ItemList* list, String* name) {
         // printf("%s is NOT a number\n", name->text);
         
         for (size_t i = 0; i < list->size; i++) {
-            if (str_equals(list->items[i]->name, name, true)) {
+            if (str_equals(list->items[i]->name, name, false)) {
                 index = (int)i;
                 break;
             }
@@ -471,6 +502,7 @@ void menu_print(ItemList* list) {
             numItems += 5;
             itemlist_print(list, numItems);
         } else if (str_equals_text(response, "A", false)) {
+            system("clear");
             itemlist_print(list, list->size);
         } else if (str_equals_text(response, "C", false)) {
             system("clear");
@@ -483,6 +515,20 @@ void menu_print(ItemList* list) {
 
         str_free(response);
     }
+}
+
+// Menu select random path
+void menu_select_rand(ItemList* list) {
+    
+    size_t lower = 0;
+    size_t upper = list->size;
+    srand(time(NULL));
+
+    size_t index = (size_t)(rand() % (upper - lower + 1)) + lower;
+
+    printf("\nSelecting random entry:\n");
+    printf("%s\n", list->items[index]->raw->text);
+
 }
 
 // Filters list by genre
@@ -568,7 +614,7 @@ void filter_favourites(ItemList* list) {
 
 }
 
-//
+// Filters list by name of item
 void filter_name(ItemList* list) {
     
     String* name = prompt("Enter name to find:");
@@ -632,6 +678,7 @@ void menu_edit(ItemList* list) {
         list->items[index] = item_init(vals, raw, index);
 
         str_free(raw);
+        strlist_free(vals);
 
     } else {
         printf("Invalid index: '%d'\n", index);
@@ -653,6 +700,8 @@ void menu_mark(ItemList* list) {
         list->items[index]->watched = str_to_bool(watched->text);
         list->items[index]->favourite = str_to_bool(fav->text);
 
+        item_set_raw(list->items[index]);
+
         str_free(watched);
         str_free(fav);
     
@@ -668,11 +717,19 @@ void menu_remove(ItemList* list, char* filename) {
     String* temp = prompt("Enter name or index to remove:");
     int index = itemlist_find(list, temp);
 
-    // printf("TEST: index = %d\tlist size = %lu\n", index, list->size);
-    
     if (index != -1 && index < list->size) {
-        printf("Removing item %d: '%s'\n", index, list->items[index]->raw->text);
-        itemlist_remove(list, index);
+        String* msg = str_init("Confirm remove item: '");
+        str_concat_text(msg, list->items[index]->raw->text);
+        str_concat_char(msg, '\'');
+
+        if (accept_prompt(msg->text, "y")) {
+            printf("Removing item %d: '%s'\n", index, list->items[index]->raw->text);
+            itemlist_remove(list, index);
+        } else {
+            printf("Remove cancelled\n");
+        }
+        str_free(msg);
+    
     } else {
         printf("Invalid index: '%d'\n", index);
     }
@@ -702,27 +759,36 @@ void menu(ItemList* list, char* path) {
 
     while (true) {
 
+        fflush(stdin);
         printf("\n-----------------------------------------------------\n");
         printf("\nChoose an option:\n");
-        String* response =  prompt("(A)dd items\n(P)rint items\n(E)dit items\n(M)ark items\n(F)ilter items\n(R)emove items\n(C)lear terminal\n(Q)uit\n");
+        String* response =  prompt("(A)dd items\n(P)rint items\n(R)andom entry\n(E)dit items\n(M)ark items\n(F)ilter items\n(D)elete items\n(C)lear terminal\n(Q)uit\n");
+        if (response == NULL || response->len == 0) {
+            printf("Please enter an option\n");
+            str_free(response);
+            continue;
+        }
 
-        if (!strcmp(response->text, "A") || !strcmp(response->text, "a")) {
+        if (str_equals_text(response, "A", false)) {
             menu_add(list, path);
-        } else if (!strcmp(response->text, "P") || !strcmp(response->text, "p")) {
+        } else if (str_equals_text(response, "P", false)) {
             menu_print(list);
-        } else if (!strcmp(response->text, "F") || !strcmp(response->text, "f")) {
-            menu_filter(list);
-        } else if (!strcmp(response->text, "E") || !strcmp(response->text, "e")) {
+        } else if (str_equals_text(response, "R", false)) {
+            menu_select_rand(list);
+        } else if (str_equals_text(response, "E", false)) {
             menu_edit(list);
-        } else if (!strcmp(response->text, "M") || !strcmp(response->text, "m")) {
+        } else if (str_equals_text(response, "M", false)) {
             menu_mark(list);
-        } else if (!strcmp(response->text, "R") || !strcmp(response->text, "r")) {
+        } else if (str_equals_text(response, "F", false)) {
+            menu_filter(list);
+        } else if (str_equals_text(response, "D", false)) {
             menu_remove(list, path);
-        } else if (!strcmp(response->text, "C") || !strcmp(response->text, "c")) {
+        } else if (str_equals_text(response, "C", false)) {
             system("clear");
-        } else if (!strcmp(response->text, "Q") || !strcmp(response->text, "q")) {
+        } else if (str_equals_text(response, "Q", false)) {
             menu_quit(list, path);
             exit = true;
+        
         } else {
             printf("Unhandled option: '%s'\n", response->text);
         }
